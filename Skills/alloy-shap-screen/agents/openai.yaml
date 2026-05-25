@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy SHAP Screen"
+  short_description: "Rank alloy elements with SHAP and select repeated top features."
+  default_prompt: "Use $alloy-shap-screen to find important alloying elements across thermal property models."

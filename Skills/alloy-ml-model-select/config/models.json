@@ -1,0 +1,5 @@
+{
+  "selection_metric": "r2",
+  "models": ["svr_rbf", "knn", "random_forest", "extra_trees", "gradient_boosting"],
+  "random_state": 42
+}

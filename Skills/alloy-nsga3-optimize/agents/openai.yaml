@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy NSGA-III Optimize"
+  short_description: "Run bounded multi-objective alloy composition optimization."
+  default_prompt: "Use $alloy-nsga3-optimize to optimize alloy compositions with NSGA-III after bounds and hyperparameters are confirmed."

@@ -1,0 +1,6 @@
+{
+  "population_size": 120,
+  "generations": 200,
+  "algorithm": "NSGA-III",
+  "reference_direction_partitions": 12
+}

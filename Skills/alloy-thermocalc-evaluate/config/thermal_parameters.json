@@ -1,0 +1,8 @@
+{
+  "parameters": {
+    "freeze range": {"source": "STR_K", "unit": "K", "default_objective": "minimize"},
+    "melt viscosity": {"source": "MV_Pa_s", "unit": "Pa*s", "default_objective": "minimize"},
+    "surface tension": {"source": "ST_N_per_m", "unit": "N/m", "default_objective": "minimize"},
+    "latent heat": {"source": "LH_J_per_g", "unit": "J/g", "default_objective": "maximize"}
+  }
+}

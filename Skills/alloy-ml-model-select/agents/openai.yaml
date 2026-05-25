@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy ML Model Select"
+  short_description: "Train regressors and choose the best model by R2."
+  default_prompt: "Use $alloy-ml-model-select to train candidate regressors for alloy properties and select the highest-R2 model."

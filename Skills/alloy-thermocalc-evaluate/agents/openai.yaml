@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy Thermo-Calc Evaluate"
+  short_description: "Run Thermo-Calc Python calculations and append thermal labels."
+  default_prompt: "Use $alloy-thermocalc-evaluate to calculate thermophysical parameters and append the results to the workbook."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy Excel Intake"
+  short_description: "Inspect alloy workbooks and confirm columns."
+  default_prompt: "Use $alloy-excel-intake to inspect an uploaded alloy workbook and confirm usable composition columns."

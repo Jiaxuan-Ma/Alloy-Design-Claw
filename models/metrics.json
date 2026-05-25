@@ -1,0 +1,169 @@
+{
+  "dataset": "thermal_results.xlsx",
+  "features": [
+    "Ni",
+    "Fe",
+    "Co",
+    "Al",
+    "Ti",
+    "Nb",
+    "Ta",
+    "Cr",
+    "Mo",
+    "W"
+  ],
+  "targets": {
+    "freeze_range": {
+      "dropped_rows": 0,
+      "models": {
+        "svr_rbf": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9987472261870899,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "knn": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.42627894845385617,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "random_forest": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9108034959801492,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "extra_trees": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 1.0,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "gradient_boosting": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9999999992944921,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        }
+      },
+      "best_model": "extra_trees",
+      "best_artifact": "models\\freeze_range__best_model.joblib",
+      "best_r2_mean": 1.0
+    },
+    "melt_viscosity": {
+      "dropped_rows": 0,
+      "models": {
+        "svr_rbf": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": -0.19879328746210123,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "knn": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": -0.08295342166888675,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "random_forest": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.7248661716514107,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "extra_trees": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 1.0,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "gradient_boosting": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9999999948340573,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        }
+      },
+      "best_model": "extra_trees",
+      "best_artifact": "models\\melt_viscosity__best_model.joblib",
+      "best_r2_mean": 1.0
+    },
+    "surface_tension": {
+      "dropped_rows": 0,
+      "models": {
+        "svr_rbf": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": -0.02396942864068774,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "knn": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.4749191592242389,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "random_forest": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9227062554362846,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "extra_trees": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 1.0,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "gradient_boosting": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9999999992944921,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        }
+      },
+      "best_model": "extra_trees",
+      "best_artifact": "models\\surface_tension__best_model.joblib",
+      "best_r2_mean": 1.0
+    },
+    "latent_heat": {
+      "dropped_rows": 0,
+      "models": {
+        "svr_rbf": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9945501639441984,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "knn": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.5734802741641639,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "random_forest": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9293154924898266,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "extra_trees": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 1.0,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        },
+        "gradient_boosting": {
+          "method": "in_sample_tiny_n",
+          "r2_mean": 0.9999999992944921,
+          "r2_std": null,
+          "warning": "Fewer than 5 rows; score is not reliable."
+        }
+      },
+      "best_model": "extra_trees",
+      "best_artifact": "models\\latent_heat__best_model.joblib",
+      "best_r2_mean": 1.0
+    }
+  }
+}

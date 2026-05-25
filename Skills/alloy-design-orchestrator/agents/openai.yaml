@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy Design Orchestrator"
+  short_description: "Coordinate the full alloy design workflow."
+  default_prompt: "Use $alloy-design-orchestrator to run the full high-temperature alloy design workflow from Excel intake to final compositions."

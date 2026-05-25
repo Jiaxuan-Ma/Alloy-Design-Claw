@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alloy Mechanics Filter"
+  short_description: "Predict UTS/EL and filter optimized alloys."
+  default_prompt: "Use $alloy-mechanics-filter to validate mechanics data, build UTS/EL models, and filter optimized compositions."
