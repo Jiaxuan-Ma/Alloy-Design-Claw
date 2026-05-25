@@ -1,49 +1,47 @@
 # Alloy Design Claw
 
-Alloy Design Claw 是一个面向高温合金智能设计的 Agent 工具原型。项目提供网页对话界面，并通过本地 Skills 工作流串联数据检查、热力学计算、机器学习建模、SHAP 特征筛选、NSGA-III 多目标优化以及可选的力学性能筛选。
+**Alloy Design Claw** is a prototype agent tool for intelligent design of Superalloys. The project provides a web-based conversational interface and uses local Skills workflows to connect data validation, thermodynamic calculations, machine-learning modeling, SHAP-based feature selection, NSGA-III multi-objective optimization, and optional mechanical-property screening.
 
+## Key Features
 
+* Upload and validate alloy composition datasets.
+* Run Thermo-Calc/TC-Python workflows to calculate thermophysical properties.
+* Train and compare multiple regression models, with automatic selection of the best-performing model.
+* Use SHAP analysis to identify key alloying elements.
+* Perform multi-objective composition optimization based on NSGA-III.
+* Optionally filter optimized compositions using predicted UTS and elongation results.
 
-## 主要功能
-
-- 上传和检查合金成分数据表。
-- 调用 Thermo-Calc/TC-Python 工作流计算热物性结果。
-- 训练并比较多种回归模型，自动选择最佳模型。
-- 使用 SHAP 分析筛选关键合金元素。
-- 基于 NSGA-III 进行多目标成分优化。
-- 可选地根据 UTS 和延伸率预测结果过滤优化成分。
-
-## 项目结构
+## Project Structure
 
 ```text
 .
-├── app.py                  # Web 服务入口和 Agent UI 后端
-├── base_agent.py           # LangChain Agent 与 Skills 调用逻辑
-├── main.ipynb              # Notebook 实验入口
-├── dataset.xlsx            # 示例数据集
-├── web/                    # 前端页面、样式和交互脚本
-└── Skills/                 # 合金设计相关技能与脚本
+├── app.py                  # Web service entry point and Agent UI backend
+├── base_agent.py           # LangChain Agent and Skills invocation logic
+├── main.ipynb              # Notebook entry point for experiments
+├── dataset.xlsx            # Sample dataset
+├── web/                    # Frontend pages, styles, and interaction scripts
+└── Skills/                 # Alloy-design-related skills and scripts
 ```
 
-## 环境配置
+## Environment Setup
 
-建议使用 Python 3.10 及以上版本，并安装项目所需依赖：
+Python 3.10 or later is recommended. Install the required dependencies with:
 
 ```bash
 pip install python-dotenv pyyaml requests html2text pandas openpyxl scikit-learn joblib langchain langchain-core langchain-deepseek
 ```
 
-如需运行完整优化和解释分析流程，还需要安装：
+To run the full optimization and explainability workflow, also install:
 
 ```bash
 pip install shap pymoo
 ```
 
-Thermo-Calc 相关功能需要本机已配置可用的 Thermo-Calc/TC-Python 环境和有效许可证。
+Thermo-Calc-related features require a working local Thermo-Calc/TC-Python environment and a valid license.
 
-## 配置文件
+## Configuration
 
-在项目根目录创建或修改 `.env`，填入模型服务配置：
+Create or edit a `.env` file in the project root directory and add the model service settings:
 
 ```env
 DEEPSEEK_API_KEY=your_api_key
@@ -51,36 +49,40 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 ```
 
-如果需要指定 Agent 使用的 Python 环境，可额外设置：
+To specify the Python environment used by the Agent, you may additionally set:
 
 ```env
 AGENT_PYTHON=D:\anaconda3\envs\pytorch_gpu\python.exe
 ```
 
-## 启动方式
+## Getting Started
 
-在项目根目录运行：
+Run the following command from the project root directory:
 
 ```bash
 python app.py 8000
 ```
 
-然后在浏览器打开：
+Then open the following address in your browser:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-## 基本使用流程
+## Basic Workflow
 
-1. 打开网页界面并上传合金数据表。
-2. 让 Agent 检查成分列并生成 composition-only 工作文件。
-3. 执行热力学计算，得到带热物性标签的数据表。
-4. 训练模型并选择最佳热物性预测模型。
-5. 运行 SHAP 分析，筛选优化元素。
-6. 设置元素范围和优化参数，执行 NSGA-III 优化。
-7. 如有力学性能数据，可继续训练 UTS/EL 模型并过滤候选合金。
+1. Open the web interface and upload an alloy dataset.
+2. Ask the Agent to validate the composition columns and generate a composition-only working file.
+3. Run thermodynamic calculations to obtain a dataset labeled with thermophysical properties.
+4. Train prediction models and select the best-performing thermophysical-property model.
+5. Run SHAP analysis to identify the alloying elements for optimization.
+6. Set element ranges and optimization parameters, then run NSGA-III optimization.
+7. With available mechanical-property data, you can further train UTS/EL models and filter candidate alloys.
 
-## 说明
+## Notes
 
-当前项目为本地原型工具，部分脚本依赖用户机器上的 Python 环境、模型服务密钥以及 Thermo-Calc 安装情况。运行前请确认 `.env`、依赖包和数据文件均已准备好。
+This project is currently a local prototype. Some scripts depend on the user’s local Python environment, model service API key, and Thermo-Calc installation. Before running the project, make sure the `.env` file, required packages, and data files are properly prepared.
+
+## Contact
+
+Jiaxuan Ma, [jxma@sjtu.edu.cn](mailto:jxma@sjtu.edu.cn)
