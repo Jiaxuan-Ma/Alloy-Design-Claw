@@ -2,6 +2,9 @@
 
 **Alloy Design Claw** is a prototype agent tool for intelligent design of Superalloys. The project provides a web-based conversational interface and uses local Skills workflows to connect data validation, thermodynamic calculations, machine-learning modeling, SHAP-based feature selection, NSGA-III multi-objective optimization, and optional mechanical-property screening.
 
+<img width="2289" height="1187" alt="image" src="https://github.com/user-attachments/assets/96ed60cc-a019-463c-8543-697b96a6023c" />
+
+
 ## Key Features
 
 * Upload and validate alloy composition datasets.
