@@ -1,14 +1,14 @@
 """
-简化版 LangChain Agent + Skills 系统
-适合在 Jupyter Notebook 中使用
+LangChain Agent + Skills system.
+Designed for use in Jupyter Notebook.
 
-使用示例:
+Usage example:
     from base_agent import scan_skills, initialize_agent, chat
 
-    # 1. 扫描 Skills
+    # 1. Scan Skills
     skills_snapshot = scan_skills(Path("./skills"))
 
-    # 2. 初始化 Agent
+    # 2. Initialize the Agent
     agent = initialize_agent(
         api_key="sk-xxx",
         base_url="https://api.deepseek.com",
@@ -16,15 +16,15 @@
         skills_dir=Path("./skills")
     )
 
-    # 3. 对话
-    response = chat(agent, "查询北京的天气")
+    # 3. Chat
+    response = chat(agent, "Check the weather in Beijing")
     print(response)
 
-    # 4. 流式对话
-    async for chunk in chat_stream(agent, "查询北京的天气"):
+    # 4. Streaming chat
+    async for chunk in chat_stream(agent, "Check the weather in Beijing"):
         print(chunk, end="", flush=True)
 
-依赖版本:
+Dependency versions:
     langchain==1.2.12
     langchain-core==1.2.19
     langchain-deepseek==1.0.1
@@ -72,24 +72,24 @@ def normalize_python_command(command: str) -> str:
     return command
 
 
-# ============ Skills 扫描 ============
-# 提取自: tools/skills_scanner.py
+# ============ Skills Scanning ============
+# Extracted from: tools/skills_scanner.py
 
 def scan_skills(skills_dir: Path) -> str:
     """
-    扫描 skills/ 目录下的所有 SKILL.md 文件，解析 YAML frontmatter
+    Scan all SKILL.md files under the skills/ directory and parse YAML frontmatter.
 
     Args:
-        skills_dir: skills 目录路径
+        skills_dir: Path to the skills directory.
 
     Returns:
-        XML 格式的 skills 快照字符串
+        Skills snapshot as an XML-formatted string.
 
-    示例输出:
+    Example output:
         <available_skills>
           <skill>
             <name>get_weather</name>
-            <description>查询指定城市的天气信息</description>
+            <description>Get weather information for a specified city</description>
             <location>./skills/get_weather/SKILL.md</location>
           </skill>
         </available_skills>
@@ -99,17 +99,17 @@ def scan_skills(skills_dir: Path) -> str:
         return "<available_skills>\n</available_skills>"
 
     skills = []
-    # 遍历 skills 目录下的所有 SKILL.md 文件
+    # Iterate over all SKILL.md files under the skills directory.
     for skill_md in sorted(skills_dir.rglob("SKILL.md")):
         try:
             content = skill_md.read_text(encoding="utf-8")
-            # 解析顶部的 YAML 元数据 (格式: ---\nkey: value\n---)
+            # Parse the YAML metadata at the top (format: ---\nkey: value\n---).
             if content.startswith("---"):
                 parts = content.split("---", 2)
                 if len(parts) >= 3:
                     meta = yaml.safe_load(parts[1])
                     if meta:
-                        # 计算相对路径，供 Agent 读取
+                        # Compute the relative path for the Agent to read.
                         rel_path = str(skill_md.relative_to(skills_dir.parent))
                         skills.append({
                             "name": meta.get("name", skill_md.parent.name),
@@ -119,7 +119,7 @@ def scan_skills(skills_dir: Path) -> str:
         except Exception as e:
             print(f" Error scanning {skill_md}: {e}")
 
-    # 将提取到的技能信息组装成 XML 格式，这段 XML 最终会喂给大模型作为提示词
+    # Assemble the extracted skill information into XML for the model prompt.
     lines = ["<available_skills>"]
     for s in skills:
         lines.append("  <skill>")
@@ -134,17 +134,17 @@ def scan_skills(skills_dir: Path) -> str:
     return snapshot
 
 
-# ============ System Prompt 构建 ============
+# ============ System Prompt Construction ============
 
 def build_system_prompt(skills_snapshot: str) -> str:
     """
-    构建简化版 System Prompt
+    Build the simplified system prompt.
 
     Args:
-        skills_snapshot: scan_skills() 返回的 XML 格式快照
+        skills_snapshot: XML-formatted snapshot returned by scan_skills().
 
     Returns:
-        完整的 system prompt 字符串
+        Complete system prompt string.
     """
     base_prompt = """你是一个专业的 AI 助手，拥有工具调用能力。
 
@@ -178,20 +178,20 @@ def build_system_prompt(skills_snapshot: str) -> str:
     return base_prompt.format(skills_snapshot=skills_snapshot)
 
 
-# ============ 工具定义 ============
-# 提取自: tools/read_file_tool.py
+# ============ Tool Definitions ============
+# Extracted from: tools/read_file_tool.py
 
-# 定义“文件读取工具”的数据输入格式（Schema）
+# Define the data input schema for the file-reading tool.
 class ReadFileInput(BaseModel):
-    # file_path: 强制大模型在指派读取任务时，必须提供一个目标文件的路径
-    # 明确告诉它“这里的路径必须是相对于项目根目录的相对路径”，避免它乱猜绝对路径导致沙箱报错
+    # file_path requires the model to provide a target file path for read tasks.
+    # The path must be relative to the project root to avoid sandbox errors.
     file_path: str = Field(
         description="Relative path of the file to read (relative to project root)"
     )
 
 
 class SandboxedReadFileTool(BaseTool):
-    """沙箱化的文件读取工具，限制在项目根目录内"""
+    """Sandboxed file-reading tool restricted to the project root."""
     name: str = "read_file"
     description: str = (
         "Read the content of a local file. Path is relative to the project root. "
@@ -204,11 +204,11 @@ class SandboxedReadFileTool(BaseTool):
     def _run(self, file_path: str) -> str:
         try:
             root = Path(self.root_dir)
-            # 整理路径，防止出现反斜杠或多余的 ./
+            # Normalize the path to remove backslashes and redundant ./ prefixes.
             normalized = file_path.replace("\\", "/").lstrip("./")
             full_path = (root / normalized).resolve()
 
-            # 沙箱机制：确保最终解析的路径仍然在项目根目录下，防止 ".." 越权读取系统文件
+            # Sandbox guard: keep the resolved path under the project root.
             if not str(full_path).startswith(str(root.resolve())):
                 return f" Access denied: path escapes project root"
 
@@ -219,7 +219,7 @@ class SandboxedReadFileTool(BaseTool):
                 return f" Not a file: {file_path}"
 
             content = full_path.read_text(encoding="utf-8")
-            # 为了防止把大模型的上下文撑爆，限制读取前 10000 个字符
+            # Limit file content to avoid overflowing the model context.
             if len(content) > 10000:
                 content = content[:10000] + "\n...[truncated]"
             return content
@@ -229,22 +229,22 @@ class SandboxedReadFileTool(BaseTool):
 
 
 def create_read_file_tool(base_dir: Path) -> SandboxedReadFileTool:
-    """创建 read_file 工具实例"""
+    """Create a read_file tool instance."""
     return SandboxedReadFileTool(root_dir=str(base_dir))
 
 
-# ============ Fetch URL 工具 ============
-# 提取自: tools/fetch_url_tool.py
+# ============ Fetch URL Tool ============
+# Extracted from: tools/fetch_url_tool.py
 
-# 定义工具的数据输入格式（Schema）
-# 必须继承 BaseModel，这样 LangChain 才能把它翻译成大模型能看懂的 JSON 格式说明书
+# Define the tool input schema.
+# It must inherit from BaseModel so LangChain can expose it as JSON schema.
 class FetchURLInput(BaseModel):
-    # url: 强制规定调用此工具必须传入名为 "url" 的字符串参数
-    # 大模型看到这段描述后，就会知道要从用户的聊天内容中提取出网页链接填到这里
+    # url is the required string parameter for this tool.
+    # The description helps the model extract the URL from the chat context.
     url: str = Field(description="The URL to fetch content from")
 
 class FetchURLTool(BaseTool):
-    """获取网页内容并转换为 Markdown"""
+    """Fetch web page content and convert it to Markdown."""
     name: str = "fetch_url"
     description: str = (
         "Fetch the content of a web page and return it as cleaned Markdown text. "
@@ -263,22 +263,22 @@ class FetchURLTool(BaseTool):
 
             content_type = resp.headers.get("content-type", "")
 
-            # API 常见的返回格式是 JSON，直接保留文本格式即可
+            # JSON is common for APIs; keep the raw text format.
             if "application/json" in content_type:
                 text = resp.text
                 if len(text) > 5000:
                     text = text[:5000] + "\n...[truncated]"
                 return text
 
-            # 对于普通网页 (HTML)，抽取其中的纯文本内容转为 Markdown，舍弃复杂的样式标签
-            # 这样能有效提取信息并减少 Token 消耗
+            # For regular HTML pages, extract text as Markdown and drop styling tags.
+            # This preserves useful information while reducing token usage.
             converter = html2text.HTML2Text()
-            converter.ignore_links = False    # 保留网页链接，可能对大模型有用
-            converter.ignore_images = True    # 忽略图片
+            converter.ignore_links = False    # Keep links because they may be useful to the model.
+            converter.ignore_images = True    # Ignore images.
             converter.body_width = 0
             markdown = converter.handle(resp.text)
 
-            # 防止网页内容过长
+            # Prevent overly long web page content.
             if len(markdown) > 5000:
                 markdown = markdown[:5000] + "\n...[truncated]"
             return markdown
@@ -290,14 +290,14 @@ class FetchURLTool(BaseTool):
 
 
 def create_fetch_url_tool() -> FetchURLTool:
-    """创建 fetch_url 工具实例"""
+    """Create a fetch_url tool instance."""
     return FetchURLTool()
 
 
-# ============ Terminal 工具 ============
-# 提取自: tools/terminal_tool.py
+# ============ Terminal Tool ============
+# Extracted from: tools/terminal_tool.py
 
-# 危险命令黑名单
+# Dangerous command blacklist.
 BLACKLISTED_COMMANDS = [
     "rm -rf /",
     "rm -rf /*",
@@ -314,15 +314,15 @@ BLACKLISTED_COMMANDS = [
 ]
 
 
-# 定义“终端命令执行工具”的数据输入格式（Schema）
+# Define the input schema for the terminal command execution tool.
 class TerminalInput(BaseModel):
-    # command: 规定大模型如果想执行系统命令，必须把命令写在这个字段里
-    # Field 里的说明书明确告诉大模型：“把你写好的底层 shell 脚本/命令字符串放这儿”
+    # command requires the model to provide the shell command in this field.
+    # The Field description tells the model where to place the shell command string.
     command: str = Field(description="The shell command to execute")
 
 
 class SafeTerminalTool(BaseTool):
-    """沙箱化的 Shell 命令执行工具"""
+    """Sandboxed shell command execution tool."""
     name: str = "terminal"
     description: str = (
         "Execute shell commands in a sandboxed environment. "
@@ -334,7 +334,7 @@ class SafeTerminalTool(BaseTool):
     root_dir: str = ""
 
     def _is_safe(self, command: str) -> bool:
-        """检查命令是否在黑名单中"""
+        """Check whether the command matches the blacklist."""
         cmd_lower = command.lower().strip()
         for blocked in BLACKLISTED_COMMANDS:
             if blocked in cmd_lower:
@@ -343,11 +343,11 @@ class SafeTerminalTool(BaseTool):
 
     def _run(self, command: str) -> str:
         command = normalize_python_command(command)
-        # 先进行黑名单匹配过滤
+        # Apply blacklist filtering before execution.
         if not self._is_safe(command):
             return f"❌ Command blocked for safety: {command}"
         try:
-            # 执行 shell 命令，benchmark 等长时任务需要较长超时
+            # Execute the shell command with a longer timeout for benchmark-like tasks.
             result = subprocess.run(
                 command,
                 shell=True,
@@ -358,15 +358,15 @@ class SafeTerminalTool(BaseTool):
                 encoding="utf-8",
                 errors="replace",
             )
-            # 收集标准输出
+            # Collect standard output.
             output = result.stdout
-            # 收集错误输出，合并在一起发回给模型
+            # Merge standard error into the output returned to the model.
             if result.stderr:
                 output += f"\n[stderr]: {result.stderr}"
             if not output.strip():
                 output = "(command completed with no output)"
                 
-            # 控制命令返回大小，防止日志太长撑爆系统
+            # Limit command output size to avoid excessive logs.
             if len(output) > 5000:
                 output = output[:5000] + "\n...[truncated]"
             return output
@@ -377,12 +377,12 @@ class SafeTerminalTool(BaseTool):
 
 
 def create_terminal_tool(base_dir: Path) -> SafeTerminalTool:
-    """创建 terminal 工具实例"""
+    """Create a terminal tool instance."""
     return SafeTerminalTool(root_dir=str(base_dir))
 
 
-# ============ Agent 初始化 ============
-# 提取自: graph/agent.py (简化版)
+# ============ Agent Initialization ============
+# Extracted from: graph/agent.py (simplified version)
 
 def initialize_agent(
     api_key: str,
@@ -393,20 +393,20 @@ def initialize_agent(
     base_dir: Path = None
 ):
     """
-    初始化 LangChain Agent
+    Initialize the LangChain Agent.
 
     Args:
         api_key: DeepSeek API Key
-        base_url: API 基础 URL
-        model: 模型名称
-        temperature: 温度参数 (0-1)
-        skills_dir: skills 目录路径（用于扫描技能）
-        base_dir: 项目根目录（用于工具沙箱）
+        base_url: API base URL.
+        model: Model name.
+        temperature: Sampling temperature (0-1).
+        skills_dir: Path to the skills directory for skill scanning.
+        base_dir: Project root directory used by sandboxed tools.
 
     Returns:
-        LangChain Agent 实例
+        LangChain Agent instance.
 
-    示例:
+    Example:
         agent = initialize_agent(
             api_key="sk-xxx",
             base_url="https://api.deepseek.com",
@@ -416,28 +416,28 @@ def initialize_agent(
         )
     """
     
-    # 如果未指定 base_dir，使用当前目录
+    # Use the current directory when base_dir is not provided.
     if base_dir is None:
         base_dir = Path.cwd()
 
-    # 如果未指定 skills_dir，使用 base_dir/skills
+    # Use base_dir/skills when skills_dir is not provided.
     if skills_dir is None:
         skills_dir = base_dir / "skills"
 
-    # 1. 扫描出本地现有的所有技能，生成 XML 供大模型识别
+    # 1. Scan all local skills and generate XML for the model.
     skills_snapshot = scan_skills(skills_dir)
 
-    # 2. 将技能快照嵌入到系统提示词中，告知大模型它能做什么
+    # 2. Embed the skill snapshot into the system prompt.
     system_prompt = build_system_prompt(skills_snapshot)
 
-    # 3. 准备三大基础工具对象（读取文件、请求网页、执行命令）
+    # 3. Prepare the core tools: file reading, web fetching, and command execution.
     tools = [
         create_read_file_tool(base_dir),
         create_fetch_url_tool(),
         create_terminal_tool(base_dir),
     ]
 
-    # 4. 初始化模型对象，这里特指 DeepSeek 对话模型
+    # 4. Initialize the DeepSeek chat model.
     llm = ChatDeepSeek(
         model=model,
         api_key=api_key,
@@ -448,7 +448,7 @@ def initialize_agent(
         max_retries=3,
     )
 
-    # 5. 使用大模型 + 工具箱 + 系统提示词 共同组装成一个可以独立运行的 Agent
+    # 5. Assemble a runnable Agent from the model, tools, and system prompt.
     agent = create_agent(
         model=llm,
         tools=tools,
@@ -459,8 +459,8 @@ def initialize_agent(
     return agent
 
 
-# ============ 对话接口 ============
-# 提取自: graph/agent.py (简化版)
+# ============ Chat Interface ============
+# Extracted from: graph/agent.py (simplified version)
 
 def chat(
     agent,
@@ -468,24 +468,24 @@ def chat(
     history: List[Dict[str, str]] = None
 ) -> str:
     """
-    同步对话（返回完整响应）
+    Synchronous chat that returns the complete response.
 
     Args:
-        agent: initialize_agent() 返回的 Agent 实例
-        message: 用户消息
-        history: 历史对话记录，格式: [{"role": "user", "content": "..."}, ...]
+        agent: Agent instance returned by initialize_agent().
+        message: User message.
+        history: Conversation history in the format [{"role": "user", "content": "..."}, ...].
 
     Returns:
-        Agent 的完整响应文本
+        Complete response text from the Agent.
 
-    示例:
-        response = chat(agent, "查询北京的天气")
+    Example:
+        response = chat(agent, "Check the weather in Beijing")
         print(response)
     """
     if history is None:
         history = []
 
-    # 构建消息列表
+    # Build the message list.
     messages = []
     for msg in history:
         role = msg.get("role", "")
@@ -497,10 +497,10 @@ def chat(
 
     messages.append(HumanMessage(content=message))
 
-    # 调用 Agent
+    # Invoke the Agent.
     result = agent.invoke({"messages": messages})
 
-    # 提取最后一条 AI 消息
+    # Extract the last AI message.
     final_messages = result.get("messages", [])
     for msg in reversed(final_messages):
         if hasattr(msg, "content") and msg.type == "ai" and msg.content:
@@ -515,33 +515,33 @@ async def chat_stream(
     history: List[Dict[str, str]] = None
 ) -> AsyncGenerator[Dict[str, Any], None]:
     """
-    流式对话（逐 token 返回）
+    Streaming chat that yields tokens and tool events.
 
     Args:
-        agent: initialize_agent() 返回的 Agent 实例
-        message: 用户消息
-        history: 历史对话记录
+        agent: Agent instance returned by initialize_agent().
+        message: User message.
+        history: Conversation history.
 
     Yields:
-        事件字典，包含以下类型:
-        - {"type": "token", "content": "..."}  # 文本 token
-        - {"type": "tool_start", "tool": "...", "input": "..."}  # 工具调用开始
-        - {"type": "tool_end", "tool": "...", "output": "..."}  # 工具调用结束
-        - {"type": "done", "content": "..."}  # 完整响应
+        Event dictionaries with the following types:
+        - {"type": "token", "content": "..."}  # Text token
+        - {"type": "tool_start", "tool": "...", "input": "..."}  # Tool call started
+        - {"type": "tool_end", "tool": "...", "output": "..."}  # Tool call ended
+        - {"type": "done", "content": "..."}  # Complete response
 
-    示例:
-        async for event in chat_stream(agent, "查询北京的天气"):
+    Example:
+        async for event in chat_stream(agent, "Check the weather in Beijing"):
             if event["type"] == "token":
                 print(event["content"], end="", flush=True)
             elif event["type"] == "tool_start":
-                print(f"\n[调用工具: {event['tool']}]")
+                print(f"\n[Calling tool: {event['tool']}]")
             elif event["type"] == "tool_end":
-                print(f"[工具输出: {event['output'][:100]}...]")
+                print(f"[Tool output: {event['output'][:100]}...]")
     """
     if history is None:
         history = []
 
-    # 将普通字典格式的对话历史，转化为 Langchain 组件理解的消息对象
+    # Convert dictionary-style conversation history into LangChain message objects.
     messages = []
     for msg in history:
         role = msg.get("role", "")
@@ -551,39 +551,39 @@ async def chat_stream(
         elif role == "assistant":
             messages.append(AIMessage(content=content))
 
-    # 加入用户最新的消息
+    # Append the latest user message.
     messages.append(HumanMessage(content=message))
 
     full_response = ""
 
-    # 使用 astream 监听并推送 Agent 内发生的事件
-    # stream_mode=["messages", "updates"] 会同时返回 "文本字符生成" 和 "调用工具状态"
+    # Use astream to listen for and forward events from the Agent.
+    # stream_mode=["messages", "updates"] returns both text generation and tool status.
     async for event in agent.astream(
         {"messages": messages},
         stream_mode=["messages", "updates"],
     ):
-        # event 可能是 (stream_mode, data) 元组
+        # The event may be a (stream_mode, data) tuple.
         if isinstance(event, tuple):
             mode, data = event
         else:
             mode = "messages"
             data = event
 
-        # messages 模式下：模型正在按字输出文本（通常就是用户能看到的聊天文字）
+        # In messages mode, the model is streaming visible chat text.
         if mode == "messages":
             msg, metadata = data
             if hasattr(msg, "content") and msg.content:
-                # 过滤掉工具调用的隐藏指令，只将普通对话文字抛给控制台
+                # Filter out hidden tool-call instructions and yield normal chat text only.
                 if msg.type == "AIMessageChunk" or msg.type == "ai":
                     if msg.content and not getattr(msg, "tool_calls", None):
                         full_response += msg.content
                         yield {"type": "token", "content": msg.content}
 
-        # updates 模式下：发生了一些大的阶段跃进，比如模型决定调用工具，或者工具执行出了结果
+        # In updates mode, larger state changes occur, such as tool calls and tool results.
         elif mode == "updates":
             if isinstance(data, dict):
                 for node_name, node_data in data.items():
-                    # 侦测到工具刚刚执行完毕
+                    # A tool has just finished executing.
                     if node_name == "tools" and "messages" in node_data:
                         for tool_msg in node_data["messages"]:
                             if hasattr(tool_msg, "name"):
@@ -592,7 +592,7 @@ async def chat_stream(
                                     "tool": tool_msg.name,
                                     "output": str(tool_msg.content)[:2000],
                                 }
-                    # 侦测到模型发起了一个新的工具调用请求
+                    # The model has requested a new tool call.
                     elif node_name == "model" and "messages" in node_data:
                         for agent_msg in node_data["messages"]:
                             if hasattr(agent_msg, "tool_calls") and agent_msg.tool_calls:
@@ -603,16 +603,16 @@ async def chat_stream(
                                         "input": str(tc.get("args", ""))[:1000],
                                     }
 
-    # 对话彻底结束，统一把拼接好的最后一次总回复发送出去
+    # When the conversation ends, send the assembled final response.
     yield {"type": "done", "content": full_response}
 
 
-# ============ 测试代码 ============
+# ============ Test Code ============
 
 if __name__ == "__main__":
     import asyncio
 
-    # 测试 Skills 扫描
+    # Test Skills scanning.
     print("=== 测试 Skills 扫描 ===")
     test_skills_dir = Path("./skills")
     if test_skills_dir.exists():
@@ -621,7 +621,7 @@ if __name__ == "__main__":
     else:
         print("⚠️ skills/ 目录不存在，跳过扫描测试")
 
-    # 测试 Agent 初始化（需要配置 API Key）
+    # Test Agent initialization, which requires an API key.
     print("\n=== 测试 Agent 初始化 ===")
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if api_key:
@@ -632,12 +632,12 @@ if __name__ == "__main__":
             base_dir=Path(".")
         )
 
-        # 测试同步对话
+        # Test synchronous chat.
         print("\n=== 测试同步对话 ===")
         response = chat(agent, "你好，请介绍一下你自己")
         print(f"Response: {response}")
 
-        # 测试流式对话
+        # Test streaming chat.
         print("\n=== 测试流式对话 ===")
         async def test_stream():
             async for event in chat_stream(agent, "1+1等于几？"):
